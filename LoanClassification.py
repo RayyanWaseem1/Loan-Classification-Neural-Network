@@ -8,6 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import accuracy_score
 import numpy as np 
 import pandas as pd
+import joblib
 
 df = pd.read_csv("/Users/rayyanwaseem/Desktop/Projects/Loan-Classification-Neural-Network/loan_data.csv")
 #print(df.sample(5))
@@ -56,11 +57,15 @@ y = df[target_col]
 
 #One-hot encode the categorical features
 X = pd.get_dummies(X, columns=cat_features, drop_first=True)
-
-
+model_input_columns = X.columns.tolist()  # Save the model input columns for later use
+joblib.dump(model_input_columns, 'model_input_columns.pkl')  # Save the model input columns
+print("Model input columns saved as model_input_columns.pkl") # Save the model input columns for future use
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size= 0.2, stratify = y)
 
 scaler = StandardScaler().fit(X_train)
+joblib.dump(scaler, 'scaler.pkl') 
+print("Scaler saved as scaler.pkl") # Save the scaler for future use
+
 X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
@@ -116,3 +121,7 @@ for epoch in range(num_epoch):
         lr = optimizer.param_groups[0]['lr']
         print(f"Epoch [{epoch+1}/{num_epoch}], Loss: {loss.item():.4f}, Validation Loss: {val_loss.item():.4f}, LR: {lr:.6f}")
         print(f"Test Accuracy: {test_accuracy:.4f}")
+
+# Save the model
+torch.save(model.state_dict(), 'loan_classification_model.pth')
+print("Model saved as 'loan_classification_model.pth'")
