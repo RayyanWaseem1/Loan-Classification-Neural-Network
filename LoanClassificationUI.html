@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Approval Predictor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    #result {
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Loan Approval Predictor</h2>
+    <form id="loanForm">
+      <input type="number" name="person_age" placeholder="Age" required>
+      <input type="number" name="person_income" placeholder="Annual Income" required>
+      <input type="number" name="person_emp_exp" placeholder="Employment Experience (Years)" required>
+      <input type="number" name="loan_amnt" placeholder="Loan Amount" required>
+      <input type="number" step="0.01" name="loan_int_rate" placeholder="Interest Rate (%)" required>
+      <input type="number" step="0.01" name="loan_percent_income" placeholder="Loan % of Income" required>
+      <input type="number" name="cb_person_cred_hist_length" placeholder="Credit History Length (Years)" required>
+      <input type="number" name="credit_score" placeholder="Credit Score" required>
+
+      <select name="person_gender" required>
+        <option value="">Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <select name="person_education" required>
+        <option value="">Select Education</option>
+        <option value="high_school">High School</option>
+        <option value="college">College</option>
+        <option value="graduate">Graduate</option>
+      </select>
+      <select name="person_home_ownership" required>
+        <option value="">Home Ownership</option>
+        <option value="RENT">Rent</option>
+        <option value="OWN">Own</option>
+        <option value="MORTGAGE">Mortgage</option>
+      </select>
+      <select name="loan_intent" required>
+        <option value="">Loan Purpose</option>
+        <option value="EDUCATION">Education</option>
+        <option value="DEBTCONSOLIDATION">Debt Consolidation</option>
+        <option value="HOMEIMPROVEMENT">Home Improvement</option>
+        <option value="VENTURE">Venture</option>
+        <option value="MEDICAL">Medical</option>
+        <option value="PERSONAL">Personal</option>
+      </select>
+      <select name="previous_loan_defaults_on_file" required>
+        <option value="">Previous Loan Default</option>
+        <option value="Y">Yes</option>
+        <option value="N">No</option>
+      </select>
+
+      <button type="submit">Predict</button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById("loanForm").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+      for (let key in data) {
+        if (!isNaN(data[key])) data[key] = parseFloat(data[key]);
+      }
+
+      const response = await fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      const resultDiv = document.getElementById("result");
+      if (result.error) {
+        resultDiv.textContent = "Error: " + result.error;
+        resultDiv.style.color = "red";
+      } else {
+        resultDiv.textContent = `Prediction: ${result.prediction === 1 ? "Approved ✅" : "Rejected ❌"} | Probability: ${(result.probability * 100).toFixed(2)}%`;
+        resultDiv.style.color = result.prediction === 1 ? "green" : "red";
+      }
+    });
+  </script>
+</body>
+</html>
